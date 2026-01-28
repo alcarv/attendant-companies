@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum KnowledgeType {
+  TEXT
+  URL
+  FILE
+}
+
+model Company {
+  id          String           @id @default(cuid())
+  name        String
+  industry    String?
+  timezone    String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  users       User[]
+  agents      Agent[]
+  knowledge   KnowledgeSource[]
+  whatsapp    WhatsAppConfig?
+  conversations Conversation[]
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  passwordHash String
+  name        String?
+  companyId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company     Company @relation(fields: [companyId], references: [id])
+}
+
+model Agent {
+  id          String   @id @default(cuid())
+  name        String
+  companyId   String
+  model       String
+  systemPrompt String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company     Company @relation(fields: [companyId], references: [id])
+  conversations Conversation[]
+}
+
+model KnowledgeSource {
+  id          String   @id @default(cuid())
+  companyId   String
+  type        KnowledgeType
+  title       String
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company     Company @relation(fields: [companyId], references: [id])
+}
+
+model WhatsAppConfig {
+  id            String   @id @default(cuid())
+  companyId     String   @unique
+  phoneNumberId String
+  businessId    String
+  accessToken   String
+  verifyToken   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company       Company @relation(fields: [companyId], references: [id])
+}
+
+model Conversation {
+  id          String   @id @default(cuid())
+  companyId   String
+  agentId     String
+  customerPhone String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company     Company @relation(fields: [companyId], references: [id])
+  agent       Agent   @relation(fields: [agentId], references: [id])
+  messages    Message[]
+
+  @@unique([companyId, customerPhone])
+}
+
+model Message {
+  id             String      @id @default(cuid())
+  conversationId String
+  role           MessageRole
+  content        String
+  createdAt      DateTime    @default(now())
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+}
