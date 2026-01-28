@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 
   const passwordHash = await bcrypt.hash(String(password), 12);
 
-  const result = await prisma.$transaction(async (tx: typeof prisma) => {
+  const result = await prisma.$transaction(async (tx) => {
     const company = await tx.company.create({
       data: {
         name: String(companyName),
