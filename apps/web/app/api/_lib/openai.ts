@@ -1,4 +1,7 @@
-import type { KnowledgeSource } from "@prisma/client";
+type KnowledgeSource = {
+  title: string;
+  content: string;
+};
 
 const apiKey = process.env.OPENAI_API_KEY;
 const model = process.env.OPENAI_MODEL ?? "gpt-5-mini";
